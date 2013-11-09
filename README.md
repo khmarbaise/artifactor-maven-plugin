@@ -1,6 +1,7 @@
 Artifactor Maven Plugin
 =======================
 
+[![Build Status](https://buildhive.cloudbees.com/job/khmarbaise/job/artifactor-maven-plugin/badge/icon)](https://buildhive.cloudbees.com/job/khmarbaise/job/artifactor-maven-plugin/)
 Overview
 --------
 
