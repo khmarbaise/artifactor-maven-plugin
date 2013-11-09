@@ -73,15 +73,15 @@ public class ArtifactorMojo
 
         for ( MavenProject project : sortedProjects )
         {
-            ArtifactorArtifact aa = new ArtifactorArtifact(project);
+            ArtifactorArtifact aa = new ArtifactorArtifact( project );
 
-            getLog().debug(" Checking if " + aa.toString() + " exists in reactor.");
+            getLog().debug( " Checking if " + aa.toString() + " exists in reactor." );
             if ( artifactsHaveBeenGiven() && !getArtifacts().contains( aa ) )
             {
                 continue;
             }
 
-            getLog().debug(" The artifact " + aa.toString() + " exists in reactor.");
+            getLog().debug( " The artifact " + aa.toString() + " exists in reactor." );
             try
             {
                 installProject( project, counter );
@@ -103,7 +103,8 @@ public class ArtifactorMojo
             if ( !artifactExistsInReactorProjects( sortedProjects, artifact ) )
             {
                 result = false;
-                getLog().error( "The given artifact " + getArtifactId( artifact ) + " does not reference an artifact in the reactor!" );
+                getLog().error( "The given artifact " + getArtifactId( artifact )
+                                    + " does not reference an artifact in the reactor!" );
             }
         }
         return result;
@@ -113,7 +114,7 @@ public class ArtifactorMojo
     {
         if ( artifact.getGroupId() == null )
         {
-            //@TODO: Think about this!
+            // @TODO: Think about this!
             return mavenProject.getGroupId() + ":" + artifact.getArtifactId();
         }
         else
@@ -152,54 +153,83 @@ public class ArtifactorMojo
         return getArtifacts() != null;
     }
 
-    private void installProject( MavenProject project, int location )
-        throws ArtifactInstallationException
+    @SuppressWarnings( "deprecation" )
+    private Artifact createPomArtifact( MavenProject project )
     {
+        return artifactFactory.createProjectArtifact( project.getGroupId(), project.getArtifactId(),
+                                                      project.getVersion() );
+    }
 
-        File pomFile = project.getFile();
+    private void installPom( MavenProject project, ArtifactRepository testRepository)
+        throws MojoExecutionException
+    {
+        try
+        {
+            Artifact pomArtifact = null;
+            if ( "pom".equals( project.getPackaging() ) )
+            {
+                pomArtifact = project.getArtifact();
+            }
+            if ( pomArtifact == null )
+            {
+                pomArtifact = createPomArtifact( project );
+            }
+            installArtifact( project.getFile(), pomArtifact, testRepository );
+        }
+        catch ( Exception e )
+        {
+            throw new MojoExecutionException( "Failed to install POM: " + project, e );
+        }
+    }
 
-        boolean isPomArtifact = "pom".equalsIgnoreCase( project.getPackaging() );
+    private void installArtifact( File file, Artifact artifact, ArtifactRepository testRepository )
+        throws MojoExecutionException
+    {
+        try
+        {
+            if ( file == null )
+            {
+                throw new IllegalStateException( "Artifact has no associated file: " + artifact.getId() );
+            }
+            if ( !file.isFile() )
+            {
+                throw new IllegalStateException( "Artifact is not fully assembled: " + file );
+            }
 
-        //@TODO Think about attached artifacts
-//        List<Artifact> attachedArtifacts = project.getAttachedArtifacts();
-//
-//        for ( Artifact artifact : attachedArtifacts )
-//        {
-//            getLog().info( " *** Attached:" + artifact.getId() );
-//        }
+            installer.install( file, artifact, testRepository );
+        }
+        catch ( Exception e )
+        {
+            throw new MojoExecutionException( "Failed to install artifact: " + artifact, e );
+        }
+    }
 
-        // @TODO: Think about attached artifacts.
-        Artifact artifact = project.getArtifact();
+    private void installProject( MavenProject project, int counter )
+        throws ArtifactInstallationException, MojoExecutionException
+    {
+        ArtifactRepository targetRepository = createTargetRepository( counter );
 
+        installPom( project, targetRepository);
+
+        Artifact mainArtifact = project.getArtifact();
+        if ( mainArtifact.getFile() != null )
+        {
+            installArtifact( mainArtifact.getFile(), mainArtifact, targetRepository );
+        }
+
+        List<Artifact> attachedArtifacts = project.getAttachedArtifacts();
+        for ( Artifact attachedArtifact : attachedArtifacts )
+        {
+            installArtifact( attachedArtifact.getFile(), attachedArtifact, targetRepository );
+        }
+    }
+
+    private ArtifactRepository createTargetRepository( int location )
+    {
         ArtifactRepository targetRepository =
             artifactRepositoryFactory.createDeploymentArtifactRepository( "local", getFolder().toURI().toString() + "/"
                 + Integer.valueOf( location ), repositoryLayouts.get( "flat" ), false /* uniqueVersion */);
-
-        if ( isPomArtifact )
-        {
-            getLog().debug( "Installation as pom file." );
-            installer.install( pomFile, artifact, targetRepository );
-        }
-        else
-        {
-            File file = artifact.getFile();
-
-            if ( file != null && file.isFile() )
-            {
-                getLog().debug( "Installation as file." );
-                installer.install( file, artifact, targetRepository );
-            }
-            else
-            {
-                getLog().debug( "Installation as project file." );
-                installer.install( project.getFile(), artifact, targetRepository );
-            }
-
-            Artifact pomArtifact =
-                artifactFactory.createProjectArtifact( artifact.getGroupId(), artifact.getArtifactId(),
-                                                       artifact.getBaseVersion() );
-            installer.install( project.getFile(), pomArtifact, targetRepository );
-        }
+        return targetRepository;
     }
 
     public MavenProject getMavenProject()
