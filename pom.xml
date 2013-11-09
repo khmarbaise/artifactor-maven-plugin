@@ -410,6 +410,7 @@
                 <configuration>
                   <extraArtifacts>
                     <extraArtifact>junit:junit:4.8:jar</extraArtifact>
+                    <extraArtifact>org.testng:testng:jar:6.8.7</extraArtifact>
                     <extraArtifact>org.apache.maven.surefire:surefire-junit4:2.15:jar</extraArtifact>
                     <extraArtifact>org.apache.maven.plugins:maven-compiler-plugin:3.1:maven-plugin</extraArtifact>
                     <extraArtifact>org.apache.maven.plugins:maven-install-plugin:2.4:maven-plugin</extraArtifact>
