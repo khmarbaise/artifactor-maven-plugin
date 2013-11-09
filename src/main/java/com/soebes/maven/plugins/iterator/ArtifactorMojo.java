@@ -58,12 +58,10 @@ public class ArtifactorMojo
         ProjectDependencyGraph projectDependencyGraph = mavenSession.getProjectDependencyGraph();
         List<MavenProject> sortedProjects = projectDependencyGraph.getSortedProjects();
 
-        int counter = sortedProjects.size();
+        int counter = 1;
 
         if ( artifactsHaveBeenGiven() )
         {
-            counter = getArtifacts().size();
-
             if ( !allGivenArtifactsPartOfTheReactor( sortedProjects ) )
             {
                 throw new MojoFailureException(
@@ -90,7 +88,7 @@ public class ArtifactorMojo
             {
                 getLog().error( "Failure during installation of an artifact.", e );
             }
-            counter--;
+            counter++;
         }
     }
 

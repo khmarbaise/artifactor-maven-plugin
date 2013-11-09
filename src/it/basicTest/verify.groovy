@@ -26,12 +26,12 @@ def buildLogFile = new File( basedir, "build.log");
 def distTargetNexus = new File (basedir, "dist/target/nexus");
 
 def files = [ 
-    "1/dist-" +projectVersion + ".pom",
-    "2/module-one-" + projectVersion + ".pom",
-    "2/module-one-" + projectVersion + ".jar",
-    "3/module-two-" + projectVersion + ".pom",
-    "3/module-two-" + projectVersion + ".jar",
-    "4/root-" + projectVersion + ".pom",
+    "1/root-" + projectVersion + ".pom",
+    "2/module-two-" + projectVersion + ".pom",
+    "2/module-two-" + projectVersion + ".jar",
+    "3/module-one-" + projectVersion + ".pom",
+    "3/module-one-" + projectVersion + ".jar",
+    "4/dist-" +projectVersion + ".pom",
 ]
 
 files.each {  
