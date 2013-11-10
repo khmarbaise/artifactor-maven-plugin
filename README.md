@@ -12,7 +12,7 @@ Overview
  structure which contains one or more artifacts from within the reactor
  in the correct order of their dependencies. Currently
  the folder are simply numbers like 1, 2, 3 etc. which means
- you can install the artifacts exactly in the order 1, 2, 3. 
+ you can install the artifacts exactly in the given order 1, 2, 3. 
  
  
  Plugin Configuration in the build 
@@ -50,6 +50,54 @@ Overview
                  +--- 1
                       +--- module-one-1.0-SNAPSHOT.jar
                       +--- module-one-1.0-SNAPSHOT.pom
+
+ If you have more than one module within your multi-module build
+ which should be installed in the given repo you have to define the
+ artifacts in your plugin configuration like this:
+
+	 <build>
+	    <plugins>
+	      <plugin>
+	        <groupId>com.soebes.maven.plugins</groupId>
+	        <artifactId>artifactor-maven-plugin</artifactId>
+	        <configuration>
+	          <artifacts>
+	            <artifact>
+	              <groupId>${project.groupId}</groupId>
+	              <artifactId>core</artifactId>
+	            </artifact>
+	            <artifact>
+	              <groupId>${project.groupId}</groupId>
+	              <artifactId>client</artifactId>
+	            </artifact>
+	            <artifact>
+	              <groupId>${project.groupId}</groupId>
+	              <artifactId>ear</artifactId>
+	            </artifact>
+	          </artifacts>
+	        </configuration>
+	      </plugin>
+	      ..
+	    </plugins>
+	    ...
+	 </build>
+
+ This will create the following structure in your dist module which 
+ is responsible for creating the appropriate structure.
+
+    dist
+     +-- pom.xml
+     +-- target
+           +-- nexus
+                 +--- 1
+                      +--- module-core-1.0-SNAPSHOT.jar
+                      +--- module-core-1.0-SNAPSHOT.pom
+                 +--- 2
+                      +--- module-client-1.0-SNAPSHOT.jar
+                      +--- module-client-1.0-SNAPSHOT.pom
+                 +--- 3
+                      +--- module-ear-1.0-SNAPSHOT.jar
+                      +--- module-ear-1.0-SNAPSHOT.pom
 
 
 Homepage

@@ -17,12 +17,12 @@ public abstract class AbstractArtifactorMojo
      * {@code 
      *   <artifacts>
      *     <artifact>
-     *       <artifactId>core</artifactId>
      *       <groupId>xyz</groupId>
+     *       <artifactId>core</artifactId>
      *     </artifact>
      *     <artifact>
-     *       <artifactId>core</artifactId>
      *       <groupId>xyz</groupId>
+     *       <artifactId>core</artifactId>
      *     </artifact>
      *     <artifact>
      *       <artifactId>ear</artifactId>
