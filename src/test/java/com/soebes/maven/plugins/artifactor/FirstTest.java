@@ -1,4 +1,4 @@
-package com.soebes.maven.plugins.iterator;
+package com.soebes.maven.plugins.artifactor;
 
 import static org.fest.assertions.Assertions.assertThat;
 

@@ -1,4 +1,4 @@
-package com.soebes.maven.plugins.iterator;
+package com.soebes.maven.plugins.artifactor;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.annotations.Test;
+
+import com.soebes.maven.plugins.artifactor.ArtifactorArtifact;
 
 public class ArtifactorArtifactTest
 {
