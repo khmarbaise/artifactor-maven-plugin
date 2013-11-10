@@ -215,8 +215,7 @@ public class ArtifactorMojo
             installArtifact( mainArtifact.getFile(), mainArtifact, targetRepository );
         }
 
-        List<Artifact> attachedArtifacts = project.getAttachedArtifacts();
-        for ( Artifact attachedArtifact : attachedArtifacts )
+        for ( Artifact attachedArtifact : project.getAttachedArtifacts() )
         {
             installArtifact( attachedArtifact.getFile(), attachedArtifact, targetRepository );
         }
