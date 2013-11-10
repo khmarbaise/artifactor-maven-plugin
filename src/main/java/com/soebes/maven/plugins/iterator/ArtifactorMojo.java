@@ -58,8 +58,6 @@ public class ArtifactorMojo
         ProjectDependencyGraph projectDependencyGraph = mavenSession.getProjectDependencyGraph();
         List<MavenProject> sortedProjects = projectDependencyGraph.getSortedProjects();
 
-        int counter = 1;
-
         if ( artifactsHaveBeenGiven() )
         {
             if ( !allGivenArtifactsPartOfTheReactor( sortedProjects ) )
@@ -69,17 +67,27 @@ public class ArtifactorMojo
             }
         }
 
+        int counter = 1;
+
         for ( MavenProject project : sortedProjects )
         {
-            ArtifactorArtifact aa = new ArtifactorArtifact( project );
+            getLog().debug( " Checking if we should install the artifact " + project.getId() );
 
-            getLog().debug( " Checking if " + aa.toString() + " exists in reactor." );
-            if ( artifactsHaveBeenGiven() && !getArtifacts().contains( aa ) )
+            if ( projectShouldNotBeingInstalled( project ) )
             {
                 continue;
             }
 
-            getLog().debug( " The artifact " + aa.toString() + " exists in reactor." );
+            if ( buildOrderOfArtifactAfterPluginExecution( sortedProjects, project ) )
+            {
+                throw new MojoFailureException(
+                                                "You have defined to use an artifact which is assembled later than the execution of this plugin." );
+            }
+
+            //@TODO: Add a check for downstream dependencies in case of a an
+            // artifact which is used but one of its dependencies is not being
+            // used. In that case the build has to fail!
+            //printDeps( projectDependencyGraph, project );
             try
             {
                 installProject( project, counter );
@@ -90,6 +98,41 @@ public class ArtifactorMojo
             }
             counter++;
         }
+    }
+
+    private boolean buildOrderOfArtifactAfterPluginExecution( List<MavenProject> sortedProjects, MavenProject project )
+    {
+        int pluginExecution = sortedProjects.indexOf( mavenProject );
+        int orderOfArtifact = sortedProjects.indexOf( project );
+
+        boolean result = false;
+        if ( orderOfArtifact > pluginExecution )
+        {
+            result = true;
+        }
+        return result;
+    }
+
+    private boolean projectShouldNotBeingInstalled( MavenProject project )
+    {
+        return artifactsHaveBeenGiven() && !getArtifacts().contains( new ArtifactorArtifact( project ) );
+    }
+
+    private void printDeps( ProjectDependencyGraph projectDependencyGraph, MavenProject project )
+    {
+        List<MavenProject> upstreamProjects = projectDependencyGraph.getUpstreamProjects( project, true );
+        getLog().debug( " -> Upstream dependencies: " + project.getId() );
+        for ( MavenProject mavenProject : upstreamProjects )
+        {
+            getLog().debug( "-> DEP: " + mavenProject.getId() );
+        }
+        List<MavenProject> downstreamProjects = projectDependencyGraph.getDownstreamProjects( project, true );
+        getLog().debug( " -> Downstream dependencies:" + project.getId() );
+        for ( MavenProject mavenProject : downstreamProjects )
+        {
+            getLog().debug( "-> DEP: " + mavenProject.getId() );
+        }
+
     }
 
     private boolean allGivenArtifactsPartOfTheReactor( List<MavenProject> sortedProjects )
@@ -158,7 +201,7 @@ public class ArtifactorMojo
                                                       project.getVersion() );
     }
 
-    private void installPom( MavenProject project, ArtifactRepository testRepository)
+    private void installPom( MavenProject project, ArtifactRepository testRepository )
         throws MojoExecutionException
     {
         try
@@ -207,7 +250,7 @@ public class ArtifactorMojo
     {
         ArtifactRepository targetRepository = createTargetRepository( counter );
 
-        installPom( project, targetRepository);
+        installPom( project, targetRepository );
 
         Artifact mainArtifact = project.getArtifact();
         if ( mainArtifact.getFile() != null )
