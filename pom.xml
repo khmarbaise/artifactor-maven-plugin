@@ -380,6 +380,7 @@
                 </goals>
                 <configuration>
                   <extraArtifacts>
+                    <extraArtifact>org.hamcrest:hamcrest-core:1.3:jar</extraArtifact>
                     <extraArtifact>log4j:log4j:1.2.16:jar</extraArtifact>
                     <extraArtifact>junit:junit:4.8:jar</extraArtifact>
                     <extraArtifact>org.testng:testng:6.8:jar</extraArtifact>
