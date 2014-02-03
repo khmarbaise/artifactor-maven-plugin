@@ -12,13 +12,12 @@
 
   <packaging>pom</packaging>
 
-  <name>artifactor-maven-plugin</name>
+  <name>artifacto-maven-plugin</name>
   <url>http://www.soebes.de</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
  
   <dependencyManagement> 
     <dependencies>
@@ -84,11 +83,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
           <version>2.6</version>
-        </plugin>
-        <plugin>
-          <groupId>com.soebes.maven.plugins</groupId>
-          <artifactId>maven-echo-plugin</artifactId>
-          <version>0.1</version>
         </plugin>
       </plugins>
     </pluginManagement>

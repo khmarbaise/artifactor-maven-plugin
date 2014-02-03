@@ -13,12 +13,17 @@ import org.apache.maven.artifact.repository.ArtifactRepositoryFactory;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.execution.ProjectDependencyGraph;
+import org.apache.maven.model.PluginExecution;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 /**
  * @author Karl-Heinz Marbaise <a href="mailto:kama@soebes.de">kama@soebes.de</a>
@@ -31,13 +36,13 @@ public class ArtifactorMojo
     /**
      * The project currently being build.
      */
-    @Component
+    @Parameter( defaultValue = "${project}", readonly = true )
     private MavenProject mavenProject;
 
     /**
      * The current Maven session.
      */
-    @Component
+    @Parameter( defaultValue = "${session}", readonly = true )
     private MavenSession mavenSession;
 
     @Component
@@ -49,12 +54,95 @@ public class ArtifactorMojo
     @Component
     private ArtifactInstaller installer;
 
+    @Parameter( defaultValue = "Das ist der Default" )
+    private String finalName;
+
     @Component
     protected ArtifactFactory artifactFactory;
+
+    // For Maven 3.3 we need to change the following (http://jira.codehaus.org/browse/MPLUGIN-257):
+
+    @Parameter( defaultValue = "${plugin}", readonly = true, required = true )
+    private PluginDescriptor pluginDescriptor;
+
+    @Parameter( defaultValue = "${mojoExecution}", readonly = true, required = true )
+    private MojoExecution mojoExecution;
+
+    private PluginExecution getPluginExecution( String executionId )
+    {
+        PluginExecution execution = null;
+        List<PluginExecution> executions = pluginDescriptor.getPlugin().getExecutions();
+        for ( PluginExecution pluginExecution : executions )
+        {
+            if ( executionId.equals( pluginExecution.getId() ) )
+            {
+                execution = pluginExecution;
+            }
+        }
+        return execution;
+    }
+
+    private Xpp3Dom getFinalNameChild( String executionId )
+    {
+        Xpp3Dom result = null;
+        PluginExecution execution = getPluginExecution( executionId );
+        if ( execution != null )
+        {
+            Xpp3Dom configuration = (Xpp3Dom) execution.getConfiguration();
+            if ( configuration != null )
+            {
+                result = configuration.getChild( "finalName" );
+            }
+        }
+        return result;
+    }
+
+    private boolean hasFinalNameAValue( String executionId )
+    {
+        boolean result = false;
+
+        Xpp3Dom child = getFinalNameChild( executionId );
+        if ( child != null && child.getValue() != null )
+        {
+            result = true;
+        }
+
+        return result;
+    }
+
+    private boolean isFinalNameDefined( String executionId )
+    {
+        boolean result = false;
+
+        Xpp3Dom child = getFinalNameChild( executionId );
+        if ( child != null )
+        {
+            result = true;
+        }
+
+        return result;
+    }
 
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
+        String executionId = mojoExecution.getExecutionId();
+        getLog().info( "mojoExecution id:" + executionId );
+
+        if ( isFinalNameDefined( executionId ) )
+        {
+            getLog().info( "--------> finalName is defined." );
+        }
+        else
+        {
+            getLog().info( "--------> NOT DEFINED." );
+        }
+        
+        if ( hasFinalNameAValue( executionId ) )
+        {
+            getLog().info( "--------> finalName is defined and has be given a value." );
+        }
+
         ProjectDependencyGraph projectDependencyGraph = mavenSession.getProjectDependencyGraph();
         List<MavenProject> sortedProjects = projectDependencyGraph.getSortedProjects();
 
@@ -84,10 +172,10 @@ public class ArtifactorMojo
                                                 "You have defined to use an artifact which is assembled later than the execution of this plugin." );
             }
 
-            //@TODO: Add a check for downstream dependencies in case of a an
+            // @TODO: Add a check for downstream dependencies in case of a an
             // artifact which is used but one of its dependencies is not being
             // used. In that case the build has to fail!
-            //printDeps( projectDependencyGraph, project );
+            // printDeps( projectDependencyGraph, project );
             try
             {
                 installProject( project, counter );
