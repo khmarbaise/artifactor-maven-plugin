@@ -18,6 +18,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -31,13 +32,13 @@ public class ArtifactorMojo
     /**
      * The project currently being build.
      */
-    @Component
+    @Parameter( defaultValue = "${project}" )
     private MavenProject mavenProject;
 
     /**
      * The current Maven session.
      */
-    @Component
+    @Parameter( defaultValue = "${session}" )
     private MavenSession mavenSession;
 
     @Component
